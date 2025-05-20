@@ -8,9 +8,9 @@ app.use(cors());
 app.use(express.json());
 
 const tasks = [
-  { id: 1, title: "Learn Git", completed: false, dueDate: "05-20-2025" },
-  { id: 2, title: "Do Dishes", completed: false, dueDate: "05-20-2025" },
-  { id: 3, title: "Build App", completed: false, dueDate: "05-20-2025" },
+  { id: 1, title: "Learn Git", completed: false },
+  { id: 2, title: "Do Dishes", completed: false },
+  { id: 3, title: "Build App", completed: false },
 ];
 
 let nextID = 4;
@@ -52,12 +52,9 @@ app.put("/tasks/:id", (req: Request, res: Response) => {
     if (completed !== undefined) {
       taskUpdate.completed = completed;
     }
-    if (dueDate !== undefined) {
-      taskUpdate.dueDate = dueDate;
-    }
     res.json(taskUpdate);
   } else {
-    res.status(404).send("Task Not Foudn");
+    res.status(404).send("Task Not Found");
   }
 });
 

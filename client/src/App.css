@@ -1,38 +1,174 @@
-.App {
-  text-align: center;
+/* ========== Base Layout ========== */
+body {
+  margin: 0;
+  padding: 2rem;
+  font-family: sans-serif;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* ========== Container ========== */
+.container {
+  width: 100%;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  box-sizing: border-box;
+  border-radius: 1rem;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+/* Responsive Layout */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1000px;
+    min-width: 550px;
   }
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* ========== Headings ========== */
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* ========== Form ========== */
+.form {
   display: flex;
-  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+}
+
+.form button {
+  width: 2.5rem;
+  background-color: black;
+  color: white;
+  border: none;
+  border-radius: 20%;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* ========== Task List ========== */
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: #fafafa;
+  border: 1px solid #ddd;
+}
+
+.task-list input[type="text"] {
+  flex-grow: 1;
+  min-width: 0;
+  font-size: 1rem;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  outline: none; /* removes the blue border */
+}
+
+.task-list input[type="text"]:focus {
+  border-color: black; /* make border black on focus */
+}
+
+.task-list span {
+  flex-grow: 1;
+  cursor: pointer;
+  color: #000;
+}
+
+.completed {
+  text-decoration: line-through;
+  color: #999;
+}
+
+/* ========== Custom Checkbox ========== */
+.custom-checkbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  border: 2px solid #999;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.custom-checkbox.checked {
+  background-color: #eee;
+  background-image: url("/public/checkmark.png");
+  background-size: 14px 14px;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ========== Delete Button ========== */
+.delete {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+}
+
+.delete img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* ========== Dark Mode ========== */
+body.dark {
+  background-color: #1c1c1c;
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.dark .container {
+  background-color: #2a2a2a;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.dark input,
+.dark button {
+  background-color: #444;
+  color: white;
+  border-color: #666;
+}
+
+.dark .completed {
+  color: #888;
+}
+
+.dark .custom-checkbox.checked {
+  background-color: #fff; /* optional: to ensure visibility */
+}
+
+.dark .delete {
+  background: none;
+  border: none;
+  color: white;
+}
+
+.dark .delete img {
+  filter: none; /* keep icon as-is in dark mode */
 }

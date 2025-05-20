@@ -5,18 +5,20 @@ type TaskType = {
   id: number;
   title: string;
   completed: boolean;
-  dueDate: string | null;
 };
 
 function App() {
   const [tasks, setTasks] = useState<TaskType[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState("");
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [editDueDate, setEditDueDate] = useState("");
   const editInputRef = useRef<HTMLInputElement>(null);
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    document.body.className = darkMode ? "dark" : "";
+  }, [darkMode]);
 
   useEffect(() => {
     if (editingId !== null && editInputRef.current) {
@@ -37,27 +39,34 @@ function App() {
       });
   }, []);
 
-  function handleDelete(id: number) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this task?"
-    );
-    if (!confirmed) return;
+  function handleAddTask(e: React.FormEvent) {
+    e.preventDefault();
 
-    fetch(`http://localhost:3001/tasks/${id}`, {
-      method: "DELETE",
+    fetch("http://localhost:3001/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title }),
     })
+      .then((res) => res.json())
+      .then((newTask) => {
+        setTasks((prev) => [...prev, newTask]);
+        setTitle("");
+      })
+      .catch((err) => console.error("Add failed:", err));
+  }
+
+  function handleDelete(id: number) {
+    fetch(`http://localhost:3001/tasks/${id}`, { method: "DELETE" })
       .then(() => {
         setTasks((prev) => prev.filter((task) => task.id !== id));
       })
-      .catch((err) => console.error("Delete failed: ", err));
+      .catch((err) => console.error("Delete failed:", err));
   }
 
   function handleToggleComplete(id: number, newStatus: boolean) {
     fetch(`http://localhost:3001/tasks/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ completed: newStatus }),
     })
       .then((res) => res.json())
@@ -72,13 +81,8 @@ function App() {
   function handleSaveEdit(id: number) {
     fetch(`http://localhost:3001/tasks/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: editTitle,
-        dueDate: editDueDate || null,
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: editTitle }),
     })
       .then((res) => res.json())
       .then((updatedTask) => {
@@ -87,129 +91,87 @@ function App() {
         );
         setEditingId(null);
         setEditTitle("");
-        setEditDueDate("");
       })
       .catch((err) => console.error("Edit failed:", err));
   }
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "sans-serif" }}>
-      <h1>My ToDo List</h1>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-
-          fetch("http://localhost:3001/tasks", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              title: title,
-              dueDate: dueDate || null,
-            }),
-          })
-            .then((res) => res.json())
-            .then((newTask) => {
-              setTasks((prev) => [...prev, newTask]);
-              setTitle("");
-              setDueDate("");
-            })
-            .catch((err) => console.error("Error adding task:", err));
+    <>
+      <img
+        src="/dark-mode.png"
+        alt="Toggle Dark Mode"
+        onClick={() => setDarkMode((prev) => !prev)}
+        style={{
+          position: "absolute",
+          top: "1rem",
+          right: "1rem",
+          width: "32px",
+          height: "32px",
+          cursor: "pointer",
+          zIndex: 1000,
         }}
-        style={{ marginBottom: "2rem" }}
-      >
-        <div>
-          <label>
-            Task Title:
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              style={{ marginLeft: "0.5rem" }}
-            />
-          </label>
-        </div>
+      />
+      <div className={`container ${darkMode ? "dark" : ""}`}>
+        <h1>todo</h1>
+        <form onSubmit={handleAddTask} className="form">
+          <input
+            type="text"
+            placeholder="Add new task"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+          <button type="submit">+</button>
+        </form>
 
-        <div style={{ marginTop: "0.5rem" }}>
-          <label>
-            Due Date:
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              style={{ marginLeft: "0.5rem" }}
-            />
-          </label>
-        </div>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <ul className="task-list">
+            {tasks.map((task) => (
+              <li key={task.id}>
+                <div
+                  className={`custom-checkbox ${
+                    task.completed ? "checked" : ""
+                  }`}
+                  onClick={() => handleToggleComplete(task.id, !task.completed)}
+                ></div>
 
-        <button type="submit" style={{ marginTop: "1rem" }}>
-          Add Task
-        </button>
-      </form>
-      {loading ? (
-        <p>Loading tasks...</p>
-      ) : (
-        <ul>
-          {tasks.map((task) => (
-            <li key={task.id}>
-              {editingId === task.id ? (
-                <>
+                {editingId === task.id ? (
                   <input
                     ref={editInputRef}
                     type="text"
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
+                    onBlur={() => handleSaveEdit(task.id)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        handleSaveEdit(editingId!);
-                      }
+                      if (e.key === "Enter") handleSaveEdit(task.id);
                     }}
                   />
-
-                  <input
-                    type="date"
-                    value={editDueDate}
-                    onChange={(e) => setEditDueDate(e.target.value)}
-                  />
-                  <button onClick={() => handleSaveEdit(task.id)}>Save</button>
-                  <button onClick={() => setEditingId(null)}>Cancel</button>
-                </>
-              ) : (
-                <>
-                  <input
-                    type="checkbox"
-                    checked={task.completed}
-                    onChange={() =>
-                      handleToggleComplete(task.id, !task.completed)
-                    }
-                  />
-                  {task.title}
-                  {task.dueDate && <em> (Due: {task.dueDate})</em>}
-                  <button
-                    style={{ marginLeft: "1rem" }}
-                    onClick={() => handleDelete(task.id)}
-                  >
-                    Delete
-                  </button>
-                  <button
-                    style={{ marginLeft: "0.5rem" }}
+                ) : (
+                  <span
+                    className={task.completed ? "completed" : ""}
                     onClick={() => {
                       setEditingId(task.id);
                       setEditTitle(task.title);
-                      setEditDueDate(task.dueDate ?? "");
                     }}
                   >
-                    Edit
-                  </button>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+                    {task.title}
+                  </span>
+                )}
+
+                <button
+                  className="delete"
+                  onClick={() => handleDelete(task.id)}
+                >
+                  <img src="/delete.png" alt="Delete" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </>
   );
 }
 
