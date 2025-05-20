@@ -8,19 +8,20 @@ app.use(cors());
 app.use(express.json());
 
 const tasks = [
-  { id: 1, title: "Learn Git", completed: false },
-  { id: 2, title: "Do Dishes", completed: false },
-  { id: 3, title: "Build App", completed: false },
+  { id: 1, title: "Make coffee", completed: false, order: 0 },
+  { id: 2, title: "Take deep breath", completed: false, order: 1 },
+  { id: 3, title: "Build this app", completed: false, order: 2 },
 ];
 
 let nextID = 4;
 
 app.get("/tasks", (req: Request, res: Response) => {
-  res.json(tasks);
+  const sortedTasks = tasks.slice().sort((a, b) => a.order - b.order);
+  res.json(sortedTasks);
 });
 
 app.post("/tasks", (req: Request, res: Response): void => {
-  const { title, dueDate } = req.body;
+  const { title } = req.body;
 
   if (!title) {
     res.status(400).send("No Title Entered");
@@ -31,12 +32,23 @@ app.post("/tasks", (req: Request, res: Response): void => {
     id: nextID++,
     title,
     completed: false,
-    dueDate: dueDate || null,
+    order: tasks.length, // ← NEW: use length to set order
   };
 
   tasks.push(newTask);
-
   res.status(201).json(newTask);
+});
+
+app.put("/tasks/reorder", (req: Request, res: Response) => {
+  console.log("Received reorder:", req.body);
+  const newOrder = req.body; // should be array of { id, order }
+
+  newOrder.forEach(({ id, order }: { id: number; order: number }) => {
+    const task = tasks.find((t) => t.id === id);
+    if (task) task.order = order;
+  });
+
+  res.status(200).json({ message: "Order updated" });
 });
 
 app.put("/tasks/:id", (req: Request, res: Response) => {
@@ -45,7 +57,7 @@ app.put("/tasks/:id", (req: Request, res: Response) => {
 
   if (index !== -1) {
     const taskUpdate = tasks[index];
-    const { title, completed, dueDate } = req.body;
+    const { title, completed } = req.body;
     if (title !== undefined) {
       taskUpdate.title = title;
     }
