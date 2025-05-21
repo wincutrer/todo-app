@@ -21,10 +21,14 @@ function App() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const editInputRef = useRef<HTMLInputElement>(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = localStorage.getItem("darkMode");
+    return stored === "true"; // converts string to boolean
+  });
 
   useEffect(() => {
     document.body.className = darkMode ? "dark" : "";
+    localStorage.setItem("darkMode", JSON.stringify(darkMode));
   }, [darkMode]);
 
   useEffect(() => {
@@ -34,7 +38,7 @@ function App() {
   }, [editingId]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/tasks")
+    fetch(`${process.env.REACT_APP_API_URL}/tasks`)
       .then((res) => res.json())
       .then((data) => {
         setTasks(data);
@@ -49,7 +53,7 @@ function App() {
   function handleAddTask(e: React.FormEvent) {
     e.preventDefault();
 
-    fetch("http://localhost:3001/tasks", {
+    fetch(`${process.env.REACT_APP_API_URL}/tasks`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title }),
@@ -63,7 +67,7 @@ function App() {
   }
 
   function handleDelete(id: number) {
-    fetch(`http://localhost:3001/tasks/${id}`, { method: "DELETE" })
+    fetch(`${process.env.REACT_APP_API_URL}/tasks/${id}`, { method: "DELETE" })
       .then(() => {
         setTasks((prev) => prev.filter((task) => task.id !== id));
       })
@@ -71,7 +75,7 @@ function App() {
   }
 
   function handleToggleComplete(id: number, newStatus: boolean) {
-    fetch(`http://localhost:3001/tasks/${id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/tasks/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ completed: newStatus }),
@@ -86,7 +90,7 @@ function App() {
   }
 
   function handleSaveEdit(id: number) {
-    fetch(`http://localhost:3001/tasks/${id}`, {
+    fetch(`${process.env.REACT_APP_API_URL}/tasks/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title: editTitle }),
@@ -116,7 +120,7 @@ function App() {
     setTasks(updated);
 
     // FIXED: Send correct payload to backend
-    fetch("http://localhost:3001/tasks/reorder", {
+    fetch(`${process.env.REACT_APP_API_URL}/tasks/reorder`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(
