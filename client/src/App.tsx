@@ -150,6 +150,7 @@ function App() {
             placeholder="Add new task"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            maxLength={75}
             required
           />
           <button type="submit">+</button>
@@ -197,6 +198,7 @@ function App() {
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") handleSaveEdit(task.id);
                               }}
+                              maxLength={75}
                             />
                           ) : (
                             <span

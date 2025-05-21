@@ -23,8 +23,13 @@ app.get("/tasks", (req: Request, res: Response) => {
 app.post("/tasks", (req: Request, res: Response): void => {
   const { title } = req.body;
 
-  if (!title) {
-    res.status(400).send("No Title Entered");
+  if (!title || title.trim().length === 0) {
+    res.status(400).send("No title entered");
+    return;
+  }
+
+  if (title.length > 75) {
+    res.status(400).send("Title must be 80 characters or fewer");
     return;
   }
 
@@ -58,12 +63,23 @@ app.put("/tasks/:id", (req: Request, res: Response) => {
   if (index !== -1) {
     const taskUpdate = tasks[index];
     const { title, completed } = req.body;
+
     if (title !== undefined) {
+      if (title.trim().length === 0) {
+        res.status(400).send("Title cannot be empty");
+        return;
+      }
+      if (title.length > 75) {
+        res.status(400).send("Title must be 80 characters or fewer");
+        return;
+      }
       taskUpdate.title = title;
     }
+
     if (completed !== undefined) {
       taskUpdate.completed = completed;
     }
+
     res.json(taskUpdate);
   } else {
     res.status(404).send("Task Not Found");
